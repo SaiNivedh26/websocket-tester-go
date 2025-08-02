@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # websocket-tester-go
 =======
 # WebSocket Load Testing Tool
@@ -319,4 +318,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [jessevdk/go-flags](https://github.com/jessevdk/go-flags) - CLI argument parsing
 - [hashicorp/go-metrics](https://github.com/hashicorp/go-metrics) - Metrics collection
 - [schollz/progressbar](https://github.com/schollz/progressbar) - Progress indicators 
->>>>>>> 7b6f823 (load-tester)
+
