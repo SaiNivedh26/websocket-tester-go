@@ -1,6 +1,4 @@
-# websocket-tester-go
-=======
-# WebSocket Load Testing Tool
+# Godo : WebSocket Load Testing Tool
 
 A high-performance, native Go CLI tool for WebSocket load testing that leverages Go's efficient goroutines and channels for highly concurrent load generation.
 
@@ -14,6 +12,19 @@ A high-performance, native Go CLI tool for WebSocket load testing that leverages
 - **JSON message support** with automatic validation
 - **Flexible test configuration** with duration, connections, and loop controls
 
+##  Developers
+
+| [<img src="https://github.com/SaiNivedh26.png" width="100px;"><br><sub><b>Sai Nivedh</b></sub>](https://github.com/SaiNivedh26) | [<img src="https://github.com/charuvarthan.png" width="100px;"><br><sub><b>Charuvarthan</b></sub>](https://github.com/charuvarthan) | [<img src="https://github.com/sajeevsenthil.png" width="100px;"><br><sub><b>Sajeev Senthil</b></sub>](https://github.com/sajeevsenthil) |
+| :---: | :---: | :---: |
+
+
+
+<br>
+<br>
+<br>
+
+
+------------------------------------------------------------------------------
 ## Installation
 
 ### Prerequisites
