@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -11,6 +12,162 @@ import (
 	"github.com/lxzan/gws"
 	"github.com/schollz/progressbar/v3"
 )
+
+// Error categories for better error analysis
+const (
+	ErrorCategoryTimeout            = "timeout"
+	ErrorCategoryConnectionRefused  = "connection_refused"
+	ErrorCategoryUnexpectedResponse = "unexpected_response"
+	ErrorCategoryInvalidData        = "invalid_data"
+	ErrorCategoryAuthFailure        = "authentication_failure"
+	ErrorCategoryNetworkError       = "network_error"
+	ErrorCategoryProtocolError      = "protocol_error"
+	ErrorCategoryResourceExhaustion = "resource_exhaustion"
+	ErrorCategoryUnknown            = "unknown"
+)
+
+// ErrorCategoryInfo contains details about an error category
+type ErrorCategoryInfo struct {
+	Count       int
+	Description string
+	Examples    []string
+}
+
+// initializeErrorCategories creates and initializes error categories with descriptions
+func initializeErrorCategories() map[string]*ErrorCategoryInfo {
+	categories := make(map[string]*ErrorCategoryInfo)
+
+	categories[ErrorCategoryTimeout] = &ErrorCategoryInfo{
+		Count:       0,
+		Description: "Requests that timed out (handshake, read, write timeouts)",
+		Examples:    make([]string, 0),
+	}
+
+	categories[ErrorCategoryConnectionRefused] = &ErrorCategoryInfo{
+		Count:       0,
+		Description: "Connection attempts rejected by the server",
+		Examples:    make([]string, 0),
+	}
+
+	categories[ErrorCategoryUnexpectedResponse] = &ErrorCategoryInfo{
+		Count:       0,
+		Description: "Unexpected HTTP responses or WebSocket upgrade failures",
+		Examples:    make([]string, 0),
+	}
+
+	categories[ErrorCategoryInvalidData] = &ErrorCategoryInfo{
+		Count:       0,
+		Description: "Invalid or malformed data received",
+		Examples:    make([]string, 0),
+	}
+
+	categories[ErrorCategoryAuthFailure] = &ErrorCategoryInfo{
+		Count:       0,
+		Description: "Authentication or authorization failures",
+		Examples:    make([]string, 0),
+	}
+
+	categories[ErrorCategoryNetworkError] = &ErrorCategoryInfo{
+		Count:       0,
+		Description: "Network-related errors (DNS, routing, etc.)",
+		Examples:    make([]string, 0),
+	}
+
+	categories[ErrorCategoryProtocolError] = &ErrorCategoryInfo{
+		Count:       0,
+		Description: "WebSocket protocol violations or errors",
+		Examples:    make([]string, 0),
+	}
+
+	categories[ErrorCategoryResourceExhaustion] = &ErrorCategoryInfo{
+		Count:       0,
+		Description: "Resource exhaustion (too many connections, memory, etc.)",
+		Examples:    make([]string, 0),
+	}
+
+	categories[ErrorCategoryUnknown] = &ErrorCategoryInfo{
+		Count:       0,
+		Description: "Uncategorized or unknown errors",
+		Examples:    make([]string, 0),
+	}
+
+	return categories
+}
+
+// categorizeError determines the category of an error based on its message and type
+func categorizeError(err error) string {
+	if err == nil {
+		return ErrorCategoryUnknown
+	}
+
+	errMsg := strings.ToLower(err.Error())
+
+	// Timeout errors
+	if strings.Contains(errMsg, "timeout") ||
+		strings.Contains(errMsg, "deadline exceeded") ||
+		strings.Contains(errMsg, "handshake timeout") {
+		return ErrorCategoryTimeout
+	}
+
+	// Connection refused errors
+	if strings.Contains(errMsg, "connection refused") ||
+		strings.Contains(errMsg, "connect: connection refused") ||
+		strings.Contains(errMsg, "connectex: no connection could be made") ||
+		strings.Contains(errMsg, "no connection could be made because the target machine actively refused") {
+		return ErrorCategoryConnectionRefused
+	}
+
+	// Network errors
+	if strings.Contains(errMsg, "no such host") ||
+		strings.Contains(errMsg, "network unreachable") ||
+		strings.Contains(errMsg, "no route to host") ||
+		strings.Contains(errMsg, "dns") {
+		return ErrorCategoryNetworkError
+	}
+
+	// Authentication/Authorization errors
+	if strings.Contains(errMsg, "unauthorized") ||
+		strings.Contains(errMsg, "forbidden") ||
+		strings.Contains(errMsg, "authentication") ||
+		strings.Contains(errMsg, "401") ||
+		strings.Contains(errMsg, "403") {
+		return ErrorCategoryAuthFailure
+	}
+
+	// Protocol errors
+	if strings.Contains(errMsg, "bad handshake") ||
+		strings.Contains(errMsg, "handshake error") ||
+		strings.Contains(errMsg, "handshake") ||
+		strings.Contains(errMsg, "websocket") ||
+		strings.Contains(errMsg, "upgrade") ||
+		strings.Contains(errMsg, "protocol") {
+		return ErrorCategoryProtocolError
+	}
+
+	// Resource exhaustion
+	if strings.Contains(errMsg, "too many") ||
+		strings.Contains(errMsg, "resource temporarily unavailable") ||
+		strings.Contains(errMsg, "out of memory") ||
+		strings.Contains(errMsg, "no buffer space available") {
+		return ErrorCategoryResourceExhaustion
+	}
+
+	// Unexpected response errors
+	if strings.Contains(errMsg, "unexpected") ||
+		strings.Contains(errMsg, "invalid response") ||
+		strings.Contains(errMsg, "bad response") {
+		return ErrorCategoryUnexpectedResponse
+	}
+
+	// Invalid data errors
+	if strings.Contains(errMsg, "invalid") ||
+		strings.Contains(errMsg, "malformed") ||
+		strings.Contains(errMsg, "parse") {
+		return ErrorCategoryInvalidData
+	}
+
+	return ErrorCategoryUnknown
+}
 
 // LoadTest represents a WebSocket load test
 type LoadTest struct {
@@ -38,6 +195,7 @@ type TestResults struct {
 	BytesReceived    int64
 	ErrorCounts      map[string]int
 	StatusCodeCount  map[int]int
+	ErrorCategories  map[string]*ErrorCategoryInfo
 }
 
 // WebSocketEventHandler implements the gws.Event interface
@@ -88,6 +246,7 @@ func NewLoadTest(opts *TestOptions) *LoadTest {
 			ErrorCounts:     make(map[string]int),
 			StatusCodeCount: make(map[int]int),
 			Latencies:       make([]time.Duration, 0),
+			ErrorCategories: initializeErrorCategories(),
 		},
 		ctx:     ctx,
 		cancel:  cancel,
@@ -235,8 +394,18 @@ func (lt *LoadTest) recordError(errorType string, err error) {
 	lt.results.FailedReqs++
 	lt.results.ErrorCounts[errorType]++
 
+	// Categorize the error
+	category := categorizeError(err)
+	if categoryInfo, exists := lt.results.ErrorCategories[category]; exists {
+		categoryInfo.Count++
+		// Add example if we don't have too many already (limit to 3 examples per category)
+		if len(categoryInfo.Examples) < 3 {
+			categoryInfo.Examples = append(categoryInfo.Examples, err.Error())
+		}
+	}
+
 	if lt.verbose {
-		log.Printf("Error (%s): %v", errorType, err)
+		log.Printf("Error (%s) [%s]: %v", errorType, category, err)
 	}
 }
 
@@ -251,6 +420,12 @@ func (lt *LoadTest) collectMetrics() {
 			lt.results.mu.RLock()
 			rps := float64(lt.results.TotalRequests) / time.Since(lt.results.StartTime).Seconds()
 			peakResponseTime := lt.results.PeakResponseTime
+
+			// Collect error category counts for metrics
+			errorCategoryMetrics := make(map[string]int)
+			for category, info := range lt.results.ErrorCategories {
+				errorCategoryMetrics[category] = info.Count
+			}
 			lt.results.mu.RUnlock()
 
 			// Record RPS metric
@@ -262,6 +437,14 @@ func (lt *LoadTest) collectMetrics() {
 			lt.metrics.SetGaugeWithLabels([]string{"peak_response_time_ms"}, float32(peakResponseTime.Milliseconds()), []metrics.Label{
 				{Name: "test", Value: "websocket"},
 			})
+
+			// Record error category metrics
+			for category, count := range errorCategoryMetrics {
+				lt.metrics.SetGaugeWithLabels([]string{"error_category_count"}, float32(count), []metrics.Label{
+					{Name: "test", Value: "websocket"},
+					{Name: "category", Value: category},
+				})
+			}
 		case <-lt.ctx.Done():
 			return
 		}
@@ -324,6 +507,36 @@ func (lt *LoadTest) printResults() {
 			fmt.Printf("  %s: %d\n", errorType, count)
 		}
 		fmt.Printf("\n")
+
+		// Print Error Categories
+		fmt.Printf("Error Categories:\n")
+		hasErrors := false
+		for category, info := range lt.results.ErrorCategories {
+			if info.Count > 0 {
+				hasErrors = true
+				fmt.Printf("  %s: %d (%.1f%%)\n",
+					strings.Title(strings.ReplaceAll(category, "_", " ")),
+					info.Count,
+					float64(info.Count)/float64(failedReqs)*100)
+				fmt.Printf("    └─ %s\n", info.Description)
+
+				// Show examples if available
+				if len(info.Examples) > 0 {
+					fmt.Printf("    └─ Examples:\n")
+					for i, example := range info.Examples {
+						if len(example) > 80 {
+							example = example[:77] + "..."
+						}
+						fmt.Printf("       %d. %s\n", i+1, example)
+					}
+				}
+				fmt.Printf("\n")
+			}
+		}
+
+		if !hasErrors {
+			fmt.Printf("  No categorized errors found.\n\n")
+		}
 	}
 
 	fmt.Printf("Test completed in %s\n", duration)
