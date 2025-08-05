@@ -22,6 +22,7 @@ func TestValidateTestOptions(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		
 		{
 			name: "invalid URL",
 			opts: &TestOptions{
