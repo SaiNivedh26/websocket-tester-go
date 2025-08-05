@@ -14,29 +14,30 @@ import (
 
 // LoadTest represents a WebSocket load test
 type LoadTest struct {
-	opts       *TestOptions
-	metrics    *metrics.InmemSink
-	results    *TestResults
-	ctx        context.Context
-	cancel     context.CancelFunc
-	progress   *progressbar.ProgressBar
-	verbose    bool
+	opts     *TestOptions
+	metrics  *metrics.InmemSink
+	results  *TestResults
+	ctx      context.Context
+	cancel   context.CancelFunc
+	progress *progressbar.ProgressBar
+	verbose  bool
 }
 
 // TestResults contains aggregated test results
 type TestResults struct {
-	mu              sync.RWMutex
-	TotalRequests   int64
-	SuccessfulReqs  int64
-	FailedReqs      int64
-	TotalLatency    time.Duration
-	Latencies       []time.Duration
-	StartTime       time.Time
-	EndTime         time.Time
-	BytesSent       int64
-	BytesReceived   int64
-	ErrorCounts     map[string]int
-	StatusCodeCount map[int]int
+	mu               sync.RWMutex
+	TotalRequests    int64
+	SuccessfulReqs   int64
+	FailedReqs       int64
+	TotalLatency     time.Duration
+	Latencies        []time.Duration
+	PeakResponseTime time.Duration
+	StartTime        time.Time
+	EndTime          time.Time
+	BytesSent        int64
+	BytesReceived    int64
+	ErrorCounts      map[string]int
+	StatusCodeCount  map[int]int
 }
 
 // WebSocketEventHandler implements the gws.Event interface
@@ -79,18 +80,18 @@ func (h *WebSocketEventHandler) OnMessage(socket *gws.Conn, message *gws.Message
 // NewLoadTest creates a new load test instance
 func NewLoadTest(opts *TestOptions) *LoadTest {
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	return &LoadTest{
-		opts:     opts,
-		metrics:  metrics.NewInmemSink(10*time.Second, 10*time.Minute),
-		results:  &TestResults{
+		opts:    opts,
+		metrics: metrics.NewInmemSink(10*time.Second, 10*time.Minute),
+		results: &TestResults{
 			ErrorCounts:     make(map[string]int),
 			StatusCodeCount: make(map[int]int),
 			Latencies:       make([]time.Duration, 0),
 		},
-		ctx:      ctx,
-		cancel:   cancel,
-		verbose:  false,
+		ctx:     ctx,
+		cancel:  cancel,
+		verbose: false,
 	}
 }
 
@@ -214,6 +215,10 @@ func (lt *LoadTest) sendMessage(client *gws.Conn, connID, msgID int) {
 	lt.results.SuccessfulReqs++
 	lt.results.TotalLatency += latency
 	lt.results.Latencies = append(lt.results.Latencies, latency)
+	// Update peak response time if this latency is higher
+	if latency > lt.results.PeakResponseTime {
+		lt.results.PeakResponseTime = latency
+	}
 	lt.results.BytesSent += int64(len(lt.opts.Message))
 	lt.results.mu.Unlock()
 
@@ -225,11 +230,11 @@ func (lt *LoadTest) sendMessage(client *gws.Conn, connID, msgID int) {
 func (lt *LoadTest) recordError(errorType string, err error) {
 	lt.results.mu.Lock()
 	defer lt.results.mu.Unlock()
-	
+
 	lt.results.TotalRequests++
 	lt.results.FailedReqs++
 	lt.results.ErrorCounts[errorType]++
-	
+
 	if lt.verbose {
 		log.Printf("Error (%s): %v", errorType, err)
 	}
@@ -245,10 +250,16 @@ func (lt *LoadTest) collectMetrics() {
 		case <-ticker.C:
 			lt.results.mu.RLock()
 			rps := float64(lt.results.TotalRequests) / time.Since(lt.results.StartTime).Seconds()
+			peakResponseTime := lt.results.PeakResponseTime
 			lt.results.mu.RUnlock()
 
 			// Record RPS metric
 			lt.metrics.SetGaugeWithLabels([]string{"rps"}, float32(rps), []metrics.Label{
+				{Name: "test", Value: "websocket"},
+			})
+
+			// Record Peak Response Time metric (in milliseconds)
+			lt.metrics.SetGaugeWithLabels([]string{"peak_response_time_ms"}, float32(peakResponseTime.Milliseconds()), []metrics.Label{
 				{Name: "test", Value: "websocket"},
 			})
 		case <-lt.ctx.Done():
@@ -301,6 +312,7 @@ func (lt *LoadTest) printResults() {
 	fmt.Printf("  Requests/sec:       %.2f\n", rps)
 	fmt.Printf("  Avg Latency:        %s\n", avgLatency)
 	fmt.Printf("  P50 Latency:        %s\n", p50Latency)
+	fmt.Printf("  Peak Response Time: %s\n", lt.results.PeakResponseTime)
 	fmt.Printf("  Throughput:         %.2f bytes/sec\n", throughput)
 	fmt.Printf("  Bytes Sent:         %d\n", lt.results.BytesSent)
 	fmt.Printf("  Bytes Received:     %d\n", lt.results.BytesReceived)
@@ -315,4 +327,4 @@ func (lt *LoadTest) printResults() {
 	}
 
 	fmt.Printf("Test completed in %s\n", duration)
-} 
+}
