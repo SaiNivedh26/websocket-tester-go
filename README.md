@@ -9,6 +9,9 @@ A high-performance, native Go CLI tool for WebSocket load testing that leverages
 - **Comprehensive performance metrics** (RPS, Latency, Throughput, Percentiles)
 - **Test history tracking** with automatic result persistence
 - **Visual trend analysis** with ASCII charts for key metrics
+- **Local file storage** for charts and history in user's temp directory
+- **Multiple chart formats** with automatic text file generation
+- **Historical data comparison** across multiple test runs
 - **Human-first CLI design** with progress indicators and clear feedback
 - **Robust error handling** and detailed logging
 - **JSON message support** with automatic validation
@@ -279,8 +282,18 @@ The tool provides comprehensive error handling:
 2. **Peak Hours**: Test during off-peak hours to minimize impact
 3. **Monitoring**: Set up alerts for performance degradation
 4. **Documentation**: Record test parameters and results for comparison
+5. **File Management**: Regularly clean up chart files from temp directory to manage disk space
 
 ## Test History and Visualization
+
+### Overview
+
+The tool provides comprehensive test history tracking and visualization capabilities:
+- Automatic persistence of all test results
+- ASCII chart generation for trend analysis
+- Local file storage in user's temp directory
+- Multiple metric visualization options
+- Easy access to historical comparisons
 
 ### History Management
 
@@ -309,7 +322,7 @@ Each test entry includes:
 
 ### Visualization
 
-Create ASCII charts to visualize metric trends across multiple test runs.
+Create ASCII charts to visualize metric trends across multiple test runs. Charts are automatically saved as text files for future reference.
 
 #### Available Metrics
 
@@ -331,6 +344,14 @@ ws-load visualize --metric throughput
 
 - `--metric, -m`: Metric to visualize (success-rate, requests-per-sec, avg-latency, throughput)
 - `--limit, -l`: Number of recent tests to include (default: 10)
+
+#### Chart Features
+
+- **ASCII Art Display**: Beautiful console-based charts
+- **Automatic Scaling**: Charts automatically scale to fit data range
+- **Multiple Data Points**: Compare up to any number of test runs
+- **File Export**: Every chart is automatically saved as a text file
+- **Timestamped Files**: Each chart file includes generation timestamp
 
 #### Example Workflow
 
@@ -367,13 +388,29 @@ Test ID: 1       2       3
    0.79 |                ████
    0.60 |████    ████    ████
 Values:  0.67    0.60    2.50
+
+📄 Chart saved as text: C:\Users\username\temp\ws-load-chart-requests-per-sec-2025-08-06-14-30-25.txt
+
+💡 Chart saved to: C:\Users\username\temp\
 ```
 
 #### History Storage
 
-- History is stored in your home directory as `.ws-load-history.json`
+- History is stored in your home directory's `temp` folder as `ws-load-history.json`
+- Charts are automatically saved as text files in the same `temp` directory
 - Each test result is automatically saved upon completion
 - History persists across sessions and can be cleared with `ws-load history --clear`
+- Chart files use timestamp naming: `ws-load-chart-{metric}-{timestamp}.txt`
+
+#### File Management
+
+All generated files are stored in your user's temp directory:
+- **Windows**: `C:\Users\{username}\temp\`
+- **macOS/Linux**: `/Users/{username}/temp/` or `/home/{username}/temp/`
+
+Files created:
+- `ws-load-history.json` - Complete test history database
+- `ws-load-chart-{metric}-{timestamp}.txt` - Individual chart files
 
 ## Troubleshooting
 
