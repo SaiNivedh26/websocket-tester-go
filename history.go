@@ -359,14 +359,5 @@ func (th *TestHistory) generateComparisonChart(metric string, limit int) {
 		fmt.Printf("📄 Chart saved as text: %s\n", textPath)
 	}
 
-	// Save current history as JSON in temp directory
-	historyPath := filepath.Join(getTempDirPath(), fmt.Sprintf("ws-load-history-backup-%s.json", timestamp.Format("2006-01-02-15-04-05")))
-	data, err := json.MarshalIndent(th, "", "  ")
-	if err == nil {
-		if err := os.WriteFile(historyPath, data, 0644); err == nil {
-			fmt.Printf("📁 History backup saved: %s\n", historyPath)
-		}
-	}
-
-	fmt.Printf("\n💡 All files saved to: %s\n", getTempDirPath())
+	fmt.Printf("\n💡 Chart saved to: %s\n", getTempDirPath())
 }
