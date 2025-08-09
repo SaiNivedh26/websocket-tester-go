@@ -342,18 +342,35 @@ func (lt *LoadTest) runConnection(connID int, pool chan struct{}) {
 		return
 	}
 
+	// Start reading messages in a separate goroutine
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				if lt.verbose {
+					log.Printf("Connection %d ReadLoop panicked: %v", connID, r)
+				}
+			}
+		}()
+		client.ReadLoop()
+	}()
+
 	// Send messages in loop
 	for i := 0; i < lt.opts.Loop; i++ {
 		select {
 		case <-lt.ctx.Done():
+			client.WriteClose(1000, []byte("test cancelled"))
 			return
 		default:
 			lt.sendMessage(client, connID, i)
 		}
 	}
 
-	// Close connection gracefully
-	client.WriteClose(1000, []byte("test completed"))
+	// Keep connection open until test duration expires
+	select {
+	case <-lt.ctx.Done():
+		// Test duration expired, close gracefully
+		client.WriteClose(1000, []byte("test completed"))
+	}
 }
 
 // sendMessage sends a single message and records metrics
