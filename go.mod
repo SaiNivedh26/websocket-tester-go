@@ -1,4 +1,4 @@
-module github.com/SaiNivedh26/websocket-tester-go
+module github.com/SaiNivedh26/ws-load
 
 
 go 1.24
