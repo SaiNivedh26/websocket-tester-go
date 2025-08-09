@@ -52,9 +52,7 @@ sudo apt install make
 xcode-select --install
 
 
-# For Windows - Download and install MYSYS2. Open it's terminal and run
 
-pacman -S make
 
 
 ```
@@ -70,7 +68,7 @@ make install
 That's it There you go !
 
 
-### Build from Source
+### Build from Source (recommended for windows)
 
 ```bash
 # Clone the repository
@@ -80,11 +78,9 @@ cd ws-load
 # Build the binary
 go build -o ws-load
 
-# Make it executable (Linux/macOS)
-chmod +x ws-load
+# For windows directly add it to your PATH in Environment Variables
 
-# Move to a directory in your PATH (optional)
-sudo mv ws-load /usr/local/bin/
+
 ```
 
 ### Using go install
