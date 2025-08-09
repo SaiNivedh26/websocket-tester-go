@@ -99,13 +99,13 @@ go install github.com/your-username/ws-load@latest
 
 ```bash
 # Run a simple test against echo.websocket.org
-ws-load test -u ws://echo.websocket.org
+ws-load test -u wss://echo.websocket.org
 
 # Run with custom parameters
-ws-load test -u ws://localhost:8080/ws -d 30s -c 50 -m "Hello, WebSocket!"
+ws-load test -u wss://localhost:8080/ws -d 30s -c 50 -m "Hello, WebSocket!"
 
 # Run with JSON message
-ws-load test -u ws://localhost:8080/ws --message '{"type":"ping","data":"test"}'
+ws-load test -u wss://localhost:8080/ws --message '{"type":"ping","data":"test"}'
 ```
 
 ### Command Options
@@ -117,7 +117,7 @@ ws-load test -u ws://localhost:8080/ws --message '{"type":"ping","data":"test"}'
 #### Test Command Options
 
 - `-u, --url`: WebSocket endpoint URL (required)
-  - Examples: `ws://echo.websocket.org`, `wss://secure.example.com/ws`
+  - Examples: `wss://echo.websocket.org`, `wss://secure.example.com/ws`
   - If no scheme is provided, `ws://` is automatically added
 
 - `-d, --duration`: Test duration (default: 30s)
@@ -139,7 +139,7 @@ ws-load test -u ws://localhost:8080/ws --message '{"type":"ping","data":"test"}'
 
 ```bash
 # Test with 100 concurrent connections for 1 minute
-ws-load test -u ws://echo.websocket.org -d 1m -c 100
+ws-load test -u wss://echo.websocket.org -d 1m -c 100
 ```
 
 #### High-Intensity Test
@@ -158,7 +158,7 @@ ws-load test \
 
 ```bash
 # Enable verbose output for debugging
-ws-load test -u ws://localhost:8080/ws -d 30s -c 10 -v
+ws-load test -u wss://localhost:8080/ws -d 30s -c 10 -v
 ```
 
 #### Configuration Check
@@ -202,7 +202,7 @@ The tool provides clear, formatted output:
 ╚══════════════════════════════════════════════════════════════╝
 
 Test Configuration:
-  URL:         ws://echo.websocket.org
+  URL:         wss://echo.websocket.org
   Duration:    30s
   Connections: 50
   Message:     Hello, WebSocket!
@@ -271,10 +271,10 @@ go test -cover
 
 ```bash
 # Test against echo.websocket.org
-ws-load test -u ws://echo.websocket.org -d 10s -c 10
+ws-load test -u wss://echo.websocket.org -d 10s -c 10
 
 # Test with JSON messages
-ws-load test -u ws://echo.websocket.org -d 10s -c 5 -m '{"test":"data"}'
+ws-load test -u wss://echo.websocket.org -d 10s -c 5 -m '{"test":"data"}'
 ```
 
 ## Error Handling
@@ -391,9 +391,9 @@ ws-load visualize --metric throughput
 
 ```bash
 # Run multiple tests
-ws-load test -u ws://echo.websocket.org -d 10s -c 5
-ws-load test -u ws://echo.websocket.org -d 10s -c 10
-ws-load test -u ws://echo.websocket.org -d 10s -c 20
+ws-load test -u wss://echo.websocket.org -d 10s -c 5
+ws-load test -u wss://echo.websocket.org -d 10s -c 10
+ws-load test -u wss://echo.websocket.org -d 10s -c 20
 
 # View test history
 ws-load history --limit 3
@@ -475,7 +475,7 @@ Files created:
 Enable verbose logging for detailed debugging:
 
 ```bash
-ws-load test -u ws://localhost:8080/ws -d 30s -c 10 -v
+ws-load test -u wss://localhost:8080/ws -d 30s -c 10 -v
 ```
 
 ## Contributing
