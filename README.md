@@ -36,6 +36,40 @@ A high-performance, native Go CLI tool for WebSocket load testing that leverages
 
 - Go 1.24 or later
 
+### Quick install
+
+Before running this make sure you have make installed in your system 
+
+```
+
+# For Linux
+
+sudo apt install make
+
+
+# For Mac - Mac already comes with make if you have Xcode Command Line Tools installed.
+
+xcode-select --install
+
+
+# For Windows - Download and install MYSYS2. Open it's terminal and run
+
+pacman -S make
+
+
+```
+
+once you've installed direct to the folder where this project is located and simply run
+
+
+```
+make
+
+```
+
+That's it There you go !
+
+
 ### Build from Source
 
 ```bash
