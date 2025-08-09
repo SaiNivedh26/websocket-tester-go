@@ -83,11 +83,6 @@ go build -o ws-load
 
 ```
 
-### Using go install
-
-```bash
-go install github.com/your-username/ws-load@latest
-```
 
 ## Usage
 
