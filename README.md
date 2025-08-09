@@ -63,7 +63,7 @@ once you've installed direct to the folder where this project is located and sim
 
 
 ```
-make
+make install
 
 ```
 
