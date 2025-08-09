@@ -1,3 +1,5 @@
+module github.com/SaiNivedh26/websocket-tester-go
+
 module ws-load
 
 go 1.24
