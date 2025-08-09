@@ -36,6 +36,13 @@ A high-performance, native Go CLI tool for WebSocket load testing that leverages
 
 - Go 1.24 or later
 
+### Installation Via Go
+
+```
+go install github.com/SaiNivedh26/ws-load
+
+```
+
 ### Quick install
 
 Before running this make sure you have make installed in your system 
