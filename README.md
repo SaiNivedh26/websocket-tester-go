@@ -7,6 +7,8 @@ A high-performance, native Go CLI tool for WebSocket load testing that leverages
 - **Real-time bi-directional WebSocket communication testing**
 - **High-performance load generation** with minimal resource consumption
 - **Comprehensive performance metrics** (RPS, Latency, Throughput, Percentiles)
+- **Test history tracking** with automatic result persistence
+- **Visual trend analysis** with ASCII charts for key metrics
 - **Human-first CLI design** with progress indicators and clear feedback
 - **Robust error handling** and detailed logging
 - **JSON message support** with automatic validation
@@ -277,6 +279,101 @@ The tool provides comprehensive error handling:
 2. **Peak Hours**: Test during off-peak hours to minimize impact
 3. **Monitoring**: Set up alerts for performance degradation
 4. **Documentation**: Record test parameters and results for comparison
+
+## Test History and Visualization
+
+### History Management
+
+The tool automatically saves test results to history for analysis and comparison.
+
+#### View Test History
+
+```bash
+# View all test history
+ws-load history
+
+# View last 5 tests
+ws-load history --limit 5
+
+# Clear all history
+ws-load history --clear
+```
+
+#### History Output
+
+Each test entry includes:
+- Test ID and timestamp
+- Test configuration (URL, duration, connections)
+- Performance metrics (success rate, RPS, latency, throughput)
+- Error summaries (if any)
+
+### Visualization
+
+Create ASCII charts to visualize metric trends across multiple test runs.
+
+#### Available Metrics
+
+```bash
+# Visualize success rate trends
+ws-load visualize --metric success-rate
+
+# Visualize requests per second
+ws-load visualize --metric requests-per-sec
+
+# Visualize average latency
+ws-load visualize --metric avg-latency
+
+# Visualize throughput
+ws-load visualize --metric throughput
+```
+
+#### Visualization Options
+
+- `--metric, -m`: Metric to visualize (success-rate, requests-per-sec, avg-latency, throughput)
+- `--limit, -l`: Number of recent tests to include (default: 10)
+
+#### Example Workflow
+
+```bash
+# Run multiple tests
+ws-load test -u ws://echo.websocket.org -d 10s -c 5
+ws-load test -u ws://echo.websocket.org -d 10s -c 10
+ws-load test -u ws://echo.websocket.org -d 10s -c 20
+
+# View test history
+ws-load history --limit 3
+
+# Visualize performance trends
+ws-load visualize --metric requests-per-sec --limit 3
+```
+
+#### Sample Visualization Output
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║                    requests-per-sec Trend Chart             ║
+╚══════════════════════════════════════════════════════════════╝
+
+Test ID: 1       2       3
+   2.50 |                ████
+   2.31 |                ████
+   2.12 |                ████
+   1.93 |                ████
+   1.74 |                ████
+   1.55 |                ████
+   1.36 |                ████
+   1.17 |                ████
+   0.98 |                ████
+   0.79 |                ████
+   0.60 |████    ████    ████
+Values:  0.67    0.60    2.50
+```
+
+#### History Storage
+
+- History is stored in your home directory as `.ws-load-history.json`
+- Each test result is automatically saved upon completion
+- History persists across sessions and can be cleared with `ws-load history --clear`
 
 ## Troubleshooting
 
