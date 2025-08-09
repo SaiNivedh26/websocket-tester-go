@@ -79,14 +79,29 @@ deps:
 # Install the binary
 install: build
 	@echo "Installing $(BINARY_NAME)..."
+
+ifeq ($(OS),Windows_NT)
+	@if not exist C:\\tools mkdir C:\\tools
+	copy $(BINARY_NAME).exe C:\\tools
+	@powershell -Command "if (-not ($$env:PATH -like '*C:\\tools*')) { setx PATH \"$$env:PATH;C:\\tools\"; Write-Host 'Added C:\\tools to PATH'; } else { Write-Host 'C:\\tools already in PATH'; }"
+	@echo "Installed to C:\\tools. Restart your terminal to use it globally."
+else
 	sudo cp $(BINARY_NAME) /usr/local/bin/
-	@echo "Installation complete"
+	@echo "Installed to /usr/local/bin."
+endif
+
 
 # Uninstall the binary
 uninstall:
 	@echo "Uninstalling $(BINARY_NAME)..."
+
+ifeq ($(OS),Windows_NT)
+	del C:\\tools\\$(BINARY_NAME).exe
+else
 	sudo rm -f /usr/local/bin/$(BINARY_NAME)
+endif
 	@echo "Uninstallation complete"
+
 
 # Run the application with example parameters
 run:
