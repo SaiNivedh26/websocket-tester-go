@@ -68,6 +68,11 @@ once you've installed direct to the folder where this project is located and sim
 
 
 ```
+
+# Clone the repository
+git clone https://github.com/SaiNivedh26/ws-load.git
+cd ws-load
+
 make install
 
 ```
@@ -79,7 +84,7 @@ That's it There you go !
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/SaiNivedh26/ws-load.git
 cd ws-load
 
 # Build the binary
